@@ -1,0 +1,6 @@
+framework module AutomaticModelKit {
+  umbrella header "AutomaticModelKit-umbrella.h"
+
+  export *
+  module * { export * }
+}

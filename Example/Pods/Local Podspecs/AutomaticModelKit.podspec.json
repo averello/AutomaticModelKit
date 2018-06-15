@@ -1,0 +1,22 @@
+{
+  "name": "AutomaticModelKit",
+  "version": "1.0",
+  "summary": "A reusable strong typed data source for UITableView and UICollectionView.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/averello/AutomaticModelKit",
+  "license": {
+    "type": "Apache 2.0",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "Georges Boumis": "developer.george.boumis@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/averello/AutomaticModelKit.git",
+    "tag": "1.0"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source_files": "AutomaticModelKit/Classes/**/*"
+}
