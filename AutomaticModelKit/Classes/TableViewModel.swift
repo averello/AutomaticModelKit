@@ -25,25 +25,64 @@
 import Foundation
 import UIKit
 
+/// A one-dimension generic table view model of homogenous entries that is
+/// specialized by the type `T` for each entry and the cell `Cell` type.
+/// A `TableViewModel` acts as a `Collection` of `T` elements.
+///
+/// `T` can by of any type.
+///
+/// `Cell` can be any subtype of `UITableViewCell`.
+///
+/// Example a table view is to be filled with entries of type `Book` using
+/// `UITableViewCell`s:
+///
+/// ```swift
+/// let books = [Book]()
+/// let model = TableViewModel<Book, UITableViewCell>(entries: books) { book, cell in
+/// /* configure cell with book */
+/// }
+/// ```
+/// Should you require an index then just pass an `.enumerated()` books.
+///
+/// ```swift
+/// let books = [Book]()
+/// let model = TableViewModel<Book, UITableViewCell>(entries: books.enumerated()) { enumeratedEntry, cell in
+/// /* configure cell with book with enumeratedEntry.offset & enumeratedIndex.element */
+/// }
+/// ```
 open class TableViewModel<T, Cell>: NSObject, Collection, UITableViewDataSource where Cell: UITableViewCell {
     
     final private var entries: [T]
     public typealias Configuration = (T, Cell) -> Void
     final private let configuration: Configuration
-    
+
+    /// Create a model with the specified entries and cell configuration.
+    /// - parameter entries: The entries of the model.
+    /// - parameter configuration: The configuration closure that gets called
+    /// for every cell each time the table view askes for a cell.
     public init(entries: [T],
          configuration: @escaping Configuration) {
         self.entries = entries
         self.configuration = configuration
     }
-    
+
+    /// The cell type to register to the table view.
     final public var cellType: Cell.Type {
         return Cell.self
     }
+    /// The cell identifiern to use for registering the table view.
     final public var cellIdentifier: String {
         return String(describing: type(of: Cell.self))
     }
-    
+
+    /// Registers the model with the given table view.
+    ///
+    /// Registering to a table view means the model register the `cellType`
+    /// with `cellIdentifier` to the table view and sets the receiver as the
+    /// the data source of the table view. If the receiver conforms to
+    /// `UITableViewDelegate` it sets the receiver as the delegate of the
+    /// table view.
+    /// - parameter tableView: the table view to register with.
     final public func register(onTableView tableView: UITableView) {
         self._register(onTableView: tableView)
         if let delegate = self as? UITableViewDelegate {
@@ -92,6 +131,33 @@ open class TableViewModel<T, Cell>: NSObject, Collection, UITableViewDataSource 
 //    }
 }
 
+/// A two-dimension generic table view model of homogenous entries that is
+/// specialized by the type `T` for each entry and the cell `Cell` type.
+/// A `TableViewModel` acts as a `Collection` of `T` elements.
+///
+/// `T` can by of any type.
+///
+/// `Cell` can be any subtype of `UITableViewCell`.
+///
+/// Example a table view is to be filled with entries of type `Book` using
+/// `UITableViewCell`s:
+///
+/// ```swift
+/// let books = [[Book]]()
+/// let model = MultidimensionTableViewModel<Book, UITableViewCell>(entries: books) { book, cell in
+/// /* configure cell with book */
+/// }
+/// model.register(onTableView: tableView)
+/// ```
+/// Should you require an index then just pass an `.enumerated()` books.
+///
+/// ```swift
+/// let books = [[Book]]()
+/// let model = MultidimensionTableViewModel<(Int,Book), UITableViewCell>(entries: books.enumerated()) { enumeratedEntry, cell in
+/// /* configure cell with book with enumeratedEntry.offset & enumeratedIndex.element */
+/// }
+/// model.register(onTableView: tableView)
+/// ```
 open class MultidimensionTableViewModel<T, Cell>: NSObject, UITableViewDataSource where Cell: UITableViewCell {
     final private let options: [[T]]
     public typealias Configuration = (T, Cell) -> Void
@@ -131,4 +197,3 @@ open class MultidimensionTableViewModel<T, Cell>: NSObject, UITableViewDataSourc
     //    final subscript(i: Int) -> T { return self.options[i] }
     //    final func index(after i: Int) -> Int { return self.options.index(after: i) }
 }
-

@@ -25,20 +25,71 @@
 import Foundation
 import UIKit
 
+/// An `AutomaticCollectionViewCell` is an abstract class intended to be subclassed.
+/// It is specialized to be configured by an entry type `T`, thus, creating a
+/// strong typed `UICollectionViewCell`.
 open class AutomaticCollectionViewCell<T>: UICollectionViewCell {
+
+    /// Configures the receiver with the specialized entry of type `T`.
+    /// - parameter entry: A specialized entry `T` to configure the receiver.
     open func configure(withEntry entry: T) {}
 }
 
+/// A one-dimension generic collection view model of homogenous entries that is
+/// specialized by the type `T` for each entry and the cell `Cell` type.
+/// A `AutomaticCollectionViewModel` acts as a `Collection` of `T` elements.
+///
+/// `T` can by of any type.
+///
+/// `Cell` must be a subtype of `AutomaticCollectionViewCell<T>`.
+///
+/// Example a collection view is to be filled with entries of type `Book` using
+/// `CustomAutomaticCollectionViewCel` which is a subclass of
+/// `AutomaticCollectionViewCell<Book>`:
+///
+/// ```swift
+/// class CustomAutomaticCollectionViewCel: AutomaticCollectionViewCell<Book> {
+///   override func configure(withEntry entry: Book) {
+///     /* use entry to configure self */
+///   }
+/// }
+///
+/// let books = [Book]()
+/// let model = AutomaticCollectionViewModel<Book, AutomaticCollectionViewCell<Book>>(entries: books)
+/// model.register(onCollectionView: collectionView)
+/// ```
+/// Should you require an index then just pass an `.enumerated()` books.
+///
+/// ```swift
+/// class CustomAutomaticCollectionViewCel: AutomaticCollectionViewCell<Book> {
+///   override func configure(withEntry entry: (index: Int, book: Book)) {
+///     /* use entry.index & entry.book to configure self */
+///   }
+/// }
+/// let books = [Book]()
+/// let model = AutomaticCollectionViewModel<(Int, Book), AutomaticCollectionViewCell<(Int, Book)>>(entries: books.enumerated)
+/// model.register(onCollectionView: collectionView)
+/// ```
 open class AutomaticCollectionViewModel<T, Cell>: NSObject, Collection, UICollectionViewDataSource where Cell: AutomaticCollectionViewCell<T> {
     final private let decoration: CollectionViewModel<T, Cell>
-    
+
+    /// Creates an `AutomaticCollectionViewModel<T, Cell` with the given entries.
+    /// - parameter entries: The entries of the model.
     public init(entries: [T]) {
         self.decoration = CollectionViewModel<T, Cell>(entries: entries,
                                                        configuration: { (entry: T, cell: Cell) in
                                                         cell.configure(withEntry: entry)
         })
     }
-    
+
+    /// Registers the model with the given collection view.
+    ///
+    /// Registering to a collection view means the model register the `cellType`
+    /// with `cellIdentifier` to the collection view and sets the receiver as the
+    /// the data source of the collection view. If the receiver conforms to
+    /// `UICollectionViewDelegate` it sets the receiver as the delegate of the
+    /// collection view.
+    /// - parameter collectionView: the collection view to register with.
     public func register(onCollectionView collectionView: UICollectionView) {
         self._register(onCollectionView: collectionView)
         if let delegate = self as? UICollectionViewDelegate {
@@ -73,103 +124,3 @@ open class AutomaticCollectionViewModel<T, Cell>: NSObject, Collection, UICollec
     final public subscript(i: Int) -> T { return self.decoration[i] }
     final public func index(after i: Int) -> Int { return self.decoration.index(after: i) }
 }
-
-//class AutomaticCollectionHeaderFooterView: UICollectionReusableView {
-//    func configure(forSection section: Int) {}
-//}
-//
-//class AutomaticCollectionHeaderView: AutomaticCollectionHeaderFooterView {}
-//class AutomaticCollectionFooterView: AutomaticCollectionHeaderFooterView {}
-//
-//
-//class FullAutomaticCollectionViewModel<T, Cell, Header, Footer>: AutomaticCollectionViewModel<T, Cell>, UICollectionViewDelegate where Header: AutomaticCollectionHeaderView, Footer: AutomaticCollectionFooterView, Cell: AutomaticCollectionViewCell<T> {
-//
-//    final private let headerHeight: CGFloat
-//    final private let footerHeight: CGFloat
-//
-//    init(entries: [T],
-//         headerHeight: CGFloat = 0,
-//         footerHeight: CGFloat = 0) {
-//        self.footerHeight = footerHeight
-//        self.headerHeight = headerHeight
-//        super.init(entries: entries)
-//    }
-//
-//    final override func register(onCollectionView collectionView: UICollectionView) {
-//        super.register(onCollectionView: collectionView)
-//        (self.headerHeight > 0).map {
-//            self.registerHeader(onTableView: collectionView)
-//        }
-//        (self.footerHeight > 0).map {
-//            self.registerHeader(onTableView: collectionView)
-//        }
-//        collectionView.delegate = self
-//    }
-//
-//    final private var headerType: Header.Type {
-//        return Header.self
-//    }
-//    final private var footerType: Footer.Type {
-//        return Footer.self
-//    }
-//
-//    final private var hasHeader: Bool = false
-//    final private var hasFooter: Bool = false
-//
-//    final private var headerIdentifier: String {
-//        return String(describing: type(of: self.headerType))
-//    }
-//
-//    final private var footerIdentifier: String {
-//        return String(describing: type(of: self.footerType))
-//    }
-//
-//    final func registerHeader(onCollectionView collectionView: UICollectionView) {
-//        self.hasHeader = true
-//        collectionView.register(self.headerType,
-//                                forSupplementaryViewOfKind: "header",
-//                                withReuseIdentifier: self.headerIdentifier)
-//    }
-//
-//    final func registerFooter(onCollectionView collectionView: UICollectionView) {
-//        self.hasFooter = true
-//        collectionView.register(self.footerType,
-//                                forSupplementaryViewOfKind: "footer",
-//                                withReuseIdentifier: self.footerIdentifier)
-//    }
-//
-//    final override func responds(to aSelector: Selector) -> Bool {
-//        if aSelector == #selector(tableView(_:viewForFooterInSection:)) {
-//            return self.hasFooter
-//        }
-//
-//        if aSelector == #selector(tableView(_:viewForHeaderInSection:)) {
-//            return self.hasHeader
-//        }
-//        return super.responds(to: aSelector)
-//    }
-//
-//    final func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-//        guard self.hasHeader else { return 0.0 }
-//        return self.headerHeight
-//    }
-//
-//    final func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-//        guard self.hasFooter else { return 0.0 }
-//        return self.footerHeight
-//    }
-//
-//    final func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-//        guard self.hasHeader,
-//            let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: self.headerIdentifier) as? Header else { return nil }
-//        header.configure(forSection: section)
-//        return header
-//    }
-//
-//    final func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-//        guard self.hasFooter,
-//            let footer = tableView.dequeueReusableHeaderFooterView(withIdentifier: self.footerIdentifier) as? Footer else { return nil }
-//        footer.configure(forSection: section)
-//        return footer
-//    }
-//}

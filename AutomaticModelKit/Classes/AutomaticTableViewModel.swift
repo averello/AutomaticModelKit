@@ -25,22 +25,72 @@
 
 import Foundation
 
-
+/// An `AutomaticTableViewCell` is an abstract class intended to be subclassed.
+/// It is specialized to be configured by an entry type `T`, thus, creating a
+/// strong typed `UITableViewCell`.
 open class AutomaticTableViewCell<T>: UITableViewCell {
+
+    /// Configures the receiver with the specialized entry of type `T`.
+    /// - parameter entry: A specialized entry `T` to configure the receiver.
     open func configure(withEntry entry: T) {}
 }
 
+/// A one-dimension generic table view model of homogenous entries that is
+/// specialized by the type `T` for each entry and the cell `Cell` type.
+/// A `AutomaticTableViewModel` acts as a `Collection` of `T` elements.
+///
+/// `T` can by of any type.
+///
+/// `Cell` must be a subtype of `AutomaticTableViewCell<T>`.
+///
+/// Example a table view is to be filled with entries of type `Book` using
+/// `CustomAutomaticTableViewCel` which is a subclass of
+/// `AutomaticTableViewCell<Book>`:
+///
+/// ```swift
+/// class CustomAutomaticTableViewCel: AutomaticTableViewCell<Book> {
+///   override func configure(withEntry entry: Book) {
+///     /* use entry to configure self */
+///   }
+/// }
+///
+/// let books = [Book]()
+/// let model = AutomaticTableViewModel<Book, AutomaticTableViewCell<Book>>(entries: books)
+/// model.register(onTableView: tableView)
+/// ```
+/// Should you require an index then just pass an `.enumerated()` books.
+///
+/// ```swift
+/// class CustomAutomaticTableViewCel: AutomaticTableViewCell<Book> {
+///   override func configure(withEntry entry: (index: Int, book: Book)) {
+///     /* use entry.index & entry.book to configure self */
+///   }
+/// }
+/// let books = [Book]()
+/// let model = AutomaticTableViewModel<(Int, Book), AutomaticTableViewCell<(Int, Book)>>(entries: books.enumerated)
+/// model.register(onTableView: tableView)
+/// ```
 open class AutomaticTableViewModel<T, Cell>: NSObject, Collection, UITableViewDataSource where Cell: AutomaticTableViewCell<T> {
     
     final fileprivate let decoration: TableViewModel<T, Cell>
-    
+
+    /// Creates an `AutomaticTableViewModel<T, Cell` with the given entries.
+    /// - parameter entries: The entries of the model.
     public init(entries: [T]) {
         self.decoration = TableViewModel<T, Cell>(entries: entries,
                                                   configuration: { (entry: T, cell: Cell) in
                                                     cell.configure(withEntry: entry)
         })
     }
-    
+
+    /// Registers the model with the given table view.
+    ///
+    /// Registering to a table view means the model register the `cellType`
+    /// with `cellIdentifier` to the table view and sets the receiver as the
+    /// the data source of the table view. If the receiver conforms to
+    /// `UITableViewDelegate` it sets the receiver as the delegate of the
+    /// table view.
+    /// - parameter tableView: the table view to register with.
     open func register(onTableView tableView: UITableView) {
         self._register(onTableView: tableView)
         if let delegate = self as? UITableViewDelegate {
@@ -87,14 +137,22 @@ open class AutomaticTableViewModel<T, Cell>: NSObject, Collection, UITableViewDa
 //    }
 }
 
+/// An `AutomaticTableHeaderFooterView` is an abstract class intended to be
+/// subclassed.
 open class AutomaticTableHeaderFooterView: UITableViewHeaderFooterView {
     open func configure(forSection section: Int) {}
 }
 
+/// An `AutomaticTableHeaderView` is an abstract class intended to be
+/// subclassed and be used as a table view header.
 open class AutomaticTableHeaderView: AutomaticTableHeaderFooterView {}
+/// An `AutomaticTableFooterView` is an abstract class intended to be
+/// subclassed and be used as a table view footer.
 open class AutomaticTableFooterView: AutomaticTableHeaderFooterView {}
 
 
+/// A `FullAutomaticTableViewModel` is an `AutomaticTableViewModel` that handles
+/// headers and footers of the registered table view.
 open class FullAutomaticTableViewModel<T, Cell, Header, Footer>: AutomaticTableViewModel<T, Cell>, UITableViewDelegate where Header: AutomaticTableHeaderView, Footer: AutomaticTableFooterView, Cell: AutomaticTableViewCell<T> {
     
     final private let headerHeight: CGFloat
@@ -141,7 +199,7 @@ open class FullAutomaticTableViewModel<T, Cell, Header, Footer>: AutomaticTableV
     final private var footerIdentifier: String {
         return String(describing: type(of: self.footerType))
     }
-    
+
     final public func registerHeader(onTableView tableView: UITableView) {
         self.hasHeader = true
         tableView.register(self.headerType,

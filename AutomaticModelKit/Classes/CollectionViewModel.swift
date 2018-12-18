@@ -25,6 +25,33 @@
 
 import Foundation
 
+/// A one-dimension generic collection view model of homogenous entries that is
+/// specialized by the type `T` for each entry and the cell `Cell` type.
+/// A `CollectionViewModel` acts as a `Collection` of `T` elements.
+///
+/// `T` can by of any type.
+///
+/// `Cell` can be any subtype of `UICollectionViewCell`.
+///
+/// Example a collection view is to be filled with entries of type `Book` using
+/// `UICollectionViewCell`s:
+///
+/// ```swift
+/// let books = [Book]()
+/// let model = CollectionViewModel<Book, UICollectionViewCell>(entries: books) { book, cell in
+/// /* configure cell with book */
+/// }
+/// model.register(onCollectionView: collectionView)
+/// ```
+/// Should you require an index then just pass an `.enumerated()` books.
+///
+/// ```swift
+/// let books = [Book]()
+/// let model = CollectionViewModel<(Int,Book), UICollectionViewCell>(entries: books.enumerated()) { enumeratedEntry, cell in
+/// /* configure cell with book with enumeratedEntry.offset & enumeratedIndex.element */
+/// }
+/// model.register(onCollectionView: collectionView)
+/// ```
 open class CollectionViewModel<T, Cell>: NSObject, Collection, UICollectionViewDataSource where Cell: UICollectionViewCell {
     final private let entries: [T]
     public typealias Configuration = (T, Cell) -> Void
@@ -42,7 +69,15 @@ open class CollectionViewModel<T, Cell>: NSObject, Collection, UICollectionViewD
     final public var cellIdentifier: String {
         return String(describing: type(of: Cell.self))
     }
-    
+
+    /// Registers the model with the given collection view.
+    ///
+    /// Registering to a collection view means the model register the `cellType`
+    /// with `cellIdentifier` to the collection view and sets the receiver as the
+    /// the data source of the collection view. If the receiver conforms to
+    /// `UICollectionViewDelegate` it sets the receiver as the delegate of the
+    /// collection view.
+    /// - parameter collectionView: the collection view to register with.
     final public func register(onCollectionView collectionView: UICollectionView) {
         self._register(onCollectionView: collectionView)
         if let delegate = self as? UICollectionViewDelegate {

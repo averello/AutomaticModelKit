@@ -1,5 +1,5 @@
 PODS:
-  - AutomaticModelKit (1.0)
+  - AutomaticModelKit (1.1)
 
 DEPENDENCIES:
   - AutomaticModelKit (from `../`)
@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  AutomaticModelKit: 8a395859a2526db8ae3c6b1385bd14ee13699a0c
+  AutomaticModelKit: 8dab0616fcc1e77ebcab9e74124bd655ae312abc
 
 PODFILE CHECKSUM: 10100e250eb69cce1ea03fecb10c02f00e08d056
 
